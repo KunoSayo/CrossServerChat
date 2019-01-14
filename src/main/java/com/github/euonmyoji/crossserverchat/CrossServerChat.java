@@ -39,7 +39,7 @@ public class CrossServerChat {
     @Inject
     @DefaultConfig(sharedRoot = true)
     public ConfigurationLoader<CommentedConfigurationNode> loader;
-    private volatile CommentedConfigurationNode cfg;
+    private CommentedConfigurationNode cfg;
     private volatile ServerSocket serverSocket;
     private volatile String serverName;
 
@@ -116,8 +116,8 @@ public class CrossServerChat {
 
     @Listener
     public void onStopping(GameStoppingServerEvent event) {
-        closeServerSocket();
         running = false;
+        closeServerSocket();
     }
 
     private static final String DEFAULT_IP = "null";
