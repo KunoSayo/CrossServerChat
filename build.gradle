@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+group 'com.github.euonmyoji.crossserverchat'
+version '0.1.0'
+
+
+defaultTasks 'clean', 'build'
+sourceCompatibility = 1.8
+
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'sponge'
+        url = 'https://repo.spongepowered.org/maven'
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+dependencies {
+    compileOnly 'org.spongepowered:spongeapi:7.1.0'
+}
