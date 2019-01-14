@@ -39,14 +39,15 @@ public class CrossServerChat {
     @Inject
     @DefaultConfig(sharedRoot = true)
     public ConfigurationLoader<CommentedConfigurationNode> loader;
-    private CommentedConfigurationNode cfg;
-    private ServerSocket serverSocket;
-    private String serverName;
+    private volatile CommentedConfigurationNode cfg;
+    private volatile ServerSocket serverSocket;
+    private volatile String serverName;
 
-    private Map<Object, ? extends CommentedConfigurationNode> sockets;
+    private volatile Map<Object, ? extends CommentedConfigurationNode> sockets;
+    private volatile boolean running = true;
+
 
     private static final String SOCKETS_KEY = "sockets";
-    private volatile boolean running = true;
 
     @Inject
     public void setLogger(Logger l) {
@@ -81,7 +82,7 @@ public class CrossServerChat {
                     } catch (IOException e) {
                         logger.warn("accept socket error, error times:" + ++times, e.getMessage());
                         if (times > 5) {
-                            logger.warn("accept socket error times is so big, close server socket! (reload to enable)");
+                            logger.warn("accept socket error times is over 5, close server socket! (reload to enable)");
                             closeServerSocket();
                         }
                         try {
