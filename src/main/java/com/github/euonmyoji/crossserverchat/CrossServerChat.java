@@ -79,12 +79,11 @@ public class CrossServerChat {
                     try (Socket socket = serverSocket.accept(); DataInputStream in = new DataInputStream(socket.getInputStream())) {
                         Sponge.getServer().getBroadcastChannel().send(TextSerializers.JSON.deserialize(in.readUTF()));
                         times = 0;
+                    } catch (RuntimeException e) {
+                        //how interesting
+                        logger.info("runtime exception (maybe is feature?", e.getMessage());
                     } catch (IOException e) {
-                        logger.warn("accept socket error, error times:" + ++times, e.getMessage());
-                        if (times > 5) {
-                            logger.warn("accept socket error times is over 5, close server socket! (reload to enable)");
-                            closeServerSocket();
-                        }
+                        logger.warn("accept socket error, error times(continued):" + ++times, e.getMessage());
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException ignore) {
