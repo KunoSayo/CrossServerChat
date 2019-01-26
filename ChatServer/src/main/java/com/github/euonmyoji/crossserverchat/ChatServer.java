@@ -1,4 +1,4 @@
-package comt.github.euonmyoji.crossserverchat;
+package com.github.euonmyoji.crossserverchat;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

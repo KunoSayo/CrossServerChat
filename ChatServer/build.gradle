@@ -21,6 +21,13 @@ configurations {
     compile.extendsFrom(shade)
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.github.euonmyoji.crossserverchat.ChatServer'
+    }
+}
+
+
 dependencies {
     shade 'ninja.leaping.configurate:configurate-core:3.3'
     shade 'ninja.leaping.configurate:configurate-hocon:3.3'
