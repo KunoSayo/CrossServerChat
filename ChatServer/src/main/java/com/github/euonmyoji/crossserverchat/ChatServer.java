@@ -1,8 +1,5 @@
 package com.github.euonmyoji.crossserverchat;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -10,7 +7,6 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -71,8 +67,7 @@ public class ChatServer {
                             if (s.startsWith("clientsAdd")) {
                                 clients.add(socket);
                             } else {
-                                DataInputStream datain = new DataInputStream(socket.getInputStream());
-                                System.out.println(datain.readUTF());
+                                readMCServerSocket(socket);
                             }
                         } else {
                             Thread.sleep(1000);
@@ -100,13 +95,6 @@ public class ChatServer {
                         }
                         return false;
                     }).forEach(socket -> ioThread.execute(() -> {
-                        try {
-                            DataInputStream in = new DataInputStream(socket.getInputStream());
-                            String s = in.readUTF();
-                            System.out.println(s);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                     }));
                 }
             }
@@ -131,6 +119,22 @@ public class ChatServer {
             }
         }
         closeAllHarmfully();
+    }
+
+    private static void readMCServerSocket(Socket socket) {
+        try {
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            String data = in.readUTF();
+            System.out.println(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void reload() {
