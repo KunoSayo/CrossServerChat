@@ -1,0 +1,40 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+group 'com.github.euonmyoji.crossserverchat.chatserver'
+version '0.1.0'
+apply plugin: 'java'
+
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+defaultTasks 'clean', 'build'
+configurations {
+    shade
+    compile.extendsFrom(shade)
+}
+
+dependencies {
+    shade 'ninja.leaping.configurate:configurate-core:3.3'
+    shade 'ninja.leaping.configurate:configurate-hocon:3.3'
+    shade 'com.google.guava:guava:21.0'
+    shade 'com.google.code.gson:gson:2.8.0'
+}
+
+shadowJar() {
+    configurations = [project.configurations.compile]
+    classifier = ""
+    from sourceSets.main.output
+}
+
+artifacts {
+    archives shadowJar
+}
+

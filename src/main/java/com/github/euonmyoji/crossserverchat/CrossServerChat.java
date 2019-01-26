@@ -35,6 +35,8 @@ import java.util.Map;
 @Plugin(id = "crossserverchat", name = "Cross Server Chat", version = "0.1.0", authors = "yinyangshi",
         description = "Cross-server chat")
 public class CrossServerChat {
+    private static final String SOCKETS_KEY = "sockets";
+    private static final String DEFAULT_IP = "null";
     private static Logger logger;
     @Inject
     @DefaultConfig(sharedRoot = true)
@@ -42,12 +44,8 @@ public class CrossServerChat {
     private CommentedConfigurationNode cfg;
     private volatile ServerSocket serverSocket;
     private volatile String serverName;
-
     private volatile Map<Object, ? extends CommentedConfigurationNode> sockets;
     private volatile boolean running = true;
-
-
-    private static final String SOCKETS_KEY = "sockets";
 
     @Inject
     public void setLogger(Logger l) {
@@ -112,14 +110,11 @@ public class CrossServerChat {
                 }).build(), "cscreload");
     }
 
-
     @Listener
     public void onStopping(GameStoppingServerEvent event) {
         running = false;
         closeServerSocket();
     }
-
-    private static final String DEFAULT_IP = "null";
 
     @Listener(order = Order.POST)
     public void onChat(MessageChannelEvent.Chat event) {
@@ -145,6 +140,7 @@ public class CrossServerChat {
         serverName = cfg.getNode("server-socket", "name").getString("");
         closeServerSocket();
         try {
+            //noinspection Duplicates
             serverSocket = new ServerSocket();
             if (DEFAULT_IP.equals(serverIP)) {
                 serverSocket.bind(new InetSocketAddress(port));
