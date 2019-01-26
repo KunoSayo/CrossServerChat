@@ -1,5 +1,6 @@
 package com.github.euonmyoji.crossserverchat;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import ninja.leaping.configurate.ConfigurationOptions;
@@ -44,54 +45,70 @@ public class ChatServer {
         Scanner scanner = new Scanner(System.in);
         try {
             cfg = loader.load(ConfigurationOptions.defaults().setShouldCopyDefaults(true));
-            reload();
-            if (cfg.getNode(SOCKETS_KEY).isVirtual()) {
-                cfg.getNode(SOCKETS_KEY, "name", "ip").getString("127.0.0.1");
-                cfg.getNode(SOCKETS_KEY, "name", "port").getInt(52016);
-            }
-            loader.save(cfg);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        coreThread.execute(() -> {
             try {
-                while (running) {
-                    if (serverSocket != null) {
-                        Socket socket = serverSocket.accept();
-                        DataInputStream in = new DataInputStream(socket.getInputStream());
-                        String s = in.readUTF();
-                        if (s.startsWith("clientsAdd")) {
-                            clients.add(socket);
-                        } else {
-                            JsonObject jsonObject = new JsonParser().parse(new InputStreamReader(socket.getInputStream()))
-                                    .getAsJsonObject();
-                            System.out.println(jsonObject);
-                        }
-                    } else {
-                        Thread.sleep(1000);
-                    }
-                }
+                reload();
             } catch (Throwable t) {
                 t.printStackTrace();
+            }
+            if (cfg.getNode(SOCKETS_KEY).isVirtual()) {
+                cfg.getNode(SOCKETS_KEY, "name", "ip").getString("127.0.0.1");
+                cfg.getNode(SOCKETS_KEY, "name", "port").getInt(5210);
+            }
+            loader.save(cfg);
+            System.out.println("初始化完成");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        coreThread.execute(() -> {
+            while (running) {
+                try {
+                    while (running) {
+                        if (serverSocket != null) {
+                            Socket socket = serverSocket.accept();
+                            DataInputStream in = new DataInputStream(socket.getInputStream());
+                            String s = in.readUTF();
+                            if (s.startsWith("clientsAdd")) {
+                                clients.add(socket);
+                            } else {
+                                DataInputStream datain = new DataInputStream(socket.getInputStream());
+                                System.out.println(datain.readUTF());
+                            }
+                        } else {
+                            Thread.sleep(1000);
+                        }
+                    }
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    sleep();
+                }
             }
         });
         coreThread.execute(() -> {
             while (running) {
-                clients.stream().filter(socket -> {
+                if (clients.isEmpty()) {
                     try {
-                        return socket.getInputStream().available() > 0;
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignore) {
                     }
-                    return false;
-                }).forEach(socket -> ioThread.execute(() -> {
-                    try {
-                        DataInputStream in = new DataInputStream(socket.getInputStream());
-                        String s = in.readUTF();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }));
+                } else {
+                    clients.stream().filter(socket -> {
+                        try {
+                            return socket.getInputStream().available() > 0;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return false;
+                    }).forEach(socket -> ioThread.execute(() -> {
+                        try {
+                            DataInputStream in = new DataInputStream(socket.getInputStream());
+                            String s = in.readUTF();
+                            System.out.println(s);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }));
+                }
             }
         });
         while (running) {
@@ -110,6 +127,7 @@ public class ChatServer {
             }
             if ("reload".equals(s)) {
                 reload();
+                System.out.println("reload done");
             }
         }
         closeAllHarmfully();
@@ -117,12 +135,12 @@ public class ChatServer {
 
     private static void reload() {
         try {
-            cfg = loader.load();
+            cfg = loader.load(ConfigurationOptions.defaults().setShouldCopyDefaults(true));
         } catch (IOException e) {
             e.printStackTrace();
         }
         String serverIP = cfg.getNode("server-socket", "ip").getString("null");
-        int port = cfg.getNode("server-socket", "port").getInt(5209);
+        int port = cfg.getNode("server-socket", "port").getInt(52016);
         try {
             if (DEFAULT_IP.equals(serverIP)) {
                 serverSocket = new ServerSocket();
@@ -133,6 +151,7 @@ public class ChatServer {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            serverSocket = null;
         }
         sockets = cfg.getNode(SOCKETS_KEY).getChildrenMap();
     }
@@ -147,6 +166,14 @@ public class ChatServer {
                 }
             });
         } catch (Throwable ignore) {
+        }
+    }
+
+    private static void sleep() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

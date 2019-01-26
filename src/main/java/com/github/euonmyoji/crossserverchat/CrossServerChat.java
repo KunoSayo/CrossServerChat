@@ -134,7 +134,7 @@ public class CrossServerChat {
     }
 
     private void reload() throws IOException {
-        cfg = loader.load();
+        cfg = loader.load(ConfigurationOptions.defaults().setShouldCopyDefaults(true));
         String serverIP = cfg.getNode("server-socket", "ip").getString("null");
         int port = cfg.getNode("server-socket", "port").getInt(5209);
         serverName = cfg.getNode("server-socket", "name").getString("");
